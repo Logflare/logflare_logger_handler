@@ -1,0 +1,17 @@
+{application, logflare_logger_handler,
+ [{description, "Logflare Logger Handler"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, {logflare_logger_handler_app, []}},
+  {applications,
+   [kernel,
+    stdlib,
+    logflare
+   ]},
+  {env,[]},
+  {modules, [logflare_logger_handler_app, logflare_logger_handler_sup,
+             logflare_logger_handler]},
+
+  {licenses, ["Apache 2.0"]},
+  {links, []}
+ ]}.
