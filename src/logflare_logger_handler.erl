@@ -35,8 +35,12 @@ changing_config(_, OldConfig, NewConfig) ->
 
 %% Log handler
 -spec log(term(), logger:handler_config()) -> ok.
-log(#{ msg := {report, #{ <<"message">> := _} = Log}}, Config) ->
+log(#{ msg := {string, Log}, meta := Meta}, Config) ->
     Pid = maps:get(pid, Config),
-    logflare:async(Pid, Log),
+    Metadata = maps:filter(fun (K, _) -> is_binary(K) end, Meta),
+    logflare:async(Pid, #{ <<"message">> => iolist_to_binary(Log),
+                           <<"metadata">> => Metadata
+                         }),
     ok;
-log(_,_) -> ok.
+log(_,_) ->
+    ok.
