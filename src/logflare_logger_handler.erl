@@ -35,12 +35,24 @@ changing_config(_, OldConfig, NewConfig) ->
 
 %% Log handler
 -spec log(term(), logger:handler_config()) -> ok.
-log(#{ msg := {string, Log}, meta := Meta}, Config) ->
-    Pid = maps:get(pid, Config),
+log(#{ msg := Msg, meta := Meta}, #{ pid := Pid }) ->
     Metadata = maps:filter(fun (K, _) -> is_binary(K) end, Meta),
-    logflare:async(Pid, #{ <<"message">> => iolist_to_binary(Log),
+    logflare:async(Pid, #{ <<"message">> => message_to_binary(Msg),
                            <<"metadata">> => Metadata
                          }),
     ok;
 log(_,_) ->
     ok.
+
+message_to_binary({string, String}) ->
+    iolist_to_binary(String);
+message_to_binary({report, Term}) ->
+    iolist_to_binary(io_lib:format("~p", [Term]));
+message_to_binary({Format, Args}) ->
+    try iolist_to_binary(io_lib:format(Format, Args))
+    catch error:badarg ->
+            io:format(user, "FORMAT ERROR: \"~s\" - ~p~n", [Format, Args]),
+            message_to_binary({report, {Format, Args}})
+    end;
+message_to_binary(_V) ->
+    <<"">>.
